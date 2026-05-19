@@ -6,7 +6,12 @@ sweep_h_R.py — Section 2 的 h / R 参数化扫描
 
 import os
 import sys
-sys.path.append("D:\\Program Files\\Lumerical\\v241\\api\\python\\")
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from sim_config import PD_DIR, PD_RESULTS_DIR, add_lumerical_api_path
+
+add_lumerical_api_path()
 import lumapi
 
 import numpy as np
@@ -19,8 +24,8 @@ from pwb_core import (
     get_data_2,
 )
 
-RESULTS_DIR = "D:/simulation/Simulation Project/simulation/PD-PWB-SMF/results/h_R_scan"
-SAVE_PATH   = "D:/simulation/Simulation Project/simulation/PD-PWB-SMF/temp.fsp"
+RESULTS_DIR = PD_RESULTS_DIR / "h_R_scan"
+SAVE_PATH = PD_DIR / "temp.fsp"
 
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
@@ -44,7 +49,7 @@ for i, R in enumerate(R_values):
         generate_pwb_path_2(params)   # 预计算路径（内部调用）
         generate_pwb_structure_2(fdtd, params)
         setup_fdtd_simulation_2(fdtd, params)
-        fdtd.save(SAVE_PATH)
+        fdtd.save(str(SAVE_PATH))
         fdtd.run()
 
         results = get_data_2(fdtd, params)

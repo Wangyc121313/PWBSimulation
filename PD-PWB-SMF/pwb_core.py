@@ -4,11 +4,17 @@ pwb_core.py — PD-PWB-SMF 仿真核心库
 """
 
 import os
+import sys
+from pathlib import Path
+
 import numpy as np
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import pandas as pd
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from sim_config import MATERIAL_DB, PD_RESULTS_DIR, PD_SMF_FSP
 
 
 # ---------------------------------------------------------------------------
@@ -300,8 +306,8 @@ def generate_pwb_structure_1(fdtd, params):
     path = generate_pwb_path_1(params)
 
     fdtd.deleteall()
-    fdtd.load("D:/simulation/Simulation Project/PD-PWB-SMF/SMF.fsp")
-    fdtd.importmaterialdb("D:/simulation/Simulation Project/database.mdf")
+    fdtd.load(str(PD_SMF_FSP))
+    fdtd.importmaterialdb(str(MATERIAL_DB))
 
     # 创建 bending
     num_segments_2 = 200
@@ -362,8 +368,8 @@ def generate_pwb_structure_2(fdtd, params):
     path = generate_pwb_path_2(params)
 
     fdtd.deleteall()
-    fdtd.load("D:/simulation/Simulation Project/PD-PWB-SMF/SMF.fsp")
-    fdtd.importmaterialdb("D:/simulation/Simulation Project/database.mdf")
+    fdtd.load(str(PD_SMF_FSP))
+    fdtd.importmaterialdb(str(MATERIAL_DB))
 
     # 创建 bending
     num_segments_2 = 200
@@ -431,8 +437,8 @@ def generate_pwb_structure_3(fdtd, params):
     segments = centerline_to_segments(path, radii)
 
     fdtd.deleteall()
-    fdtd.load("D:/simulation/Simulation Project/PD-PWB-SMF/SMF.fsp")
-    fdtd.importmaterialdb("D:/simulation/Simulation Project/database.mdf")
+    fdtd.load(str(PD_SMF_FSP))
+    fdtd.importmaterialdb(str(MATERIAL_DB))
     add_centerline_segments(fdtd, segments)
 
 
@@ -729,7 +735,8 @@ def visualize_and_save_results_1(fdtd, params):
     ax.set_title('Transmission Monitor')
     plt.tight_layout()
 
-    out_path = "D:/simulation/Simulation Project/PD-PWB-SMF/results/Pictures/Section1.png"
+    out_path = PD_RESULTS_DIR / "Pictures" / "Section1.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches='tight')
     plt.show()
 
@@ -766,7 +773,8 @@ def visualize_and_save_results_3(fdtd, params):
     ax.set_title('Complex Path Transmission Monitor')
     plt.tight_layout()
 
-    out_path = "D:/simulation/Simulation Project/PD-PWB-SMF/results/Pictures/ComplexPath.png"
+    out_path = PD_RESULTS_DIR / "Pictures" / "ComplexPath.png"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path, dpi=300, bbox_inches='tight')
     plt.show()
 

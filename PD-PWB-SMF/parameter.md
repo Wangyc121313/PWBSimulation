@@ -2,6 +2,18 @@
 
 本文说明 `pwb_core.py` 中 PD-PWB-SMF 几何生成相关参数，重点解释 `_1/_2` 的圆弧半径 `R` 与 `_3` 复杂中心线中的“弯曲半径”概念差异。
 
+## 0. 路径配置
+
+脚本中的工程文件、材料库和结果目录路径统一从根目录 `sim_config.py` 获取。常用项包括：
+
+- `PD_DIR`：当前场景目录。
+- `PD_RESULTS_DIR`：结果输出目录。
+- `PD_SMF_FSP`：基础 `SMF.fsp` 工程文件。
+- `MATERIAL_DB`：材料库文件。
+- `add_lumerical_api_path()`：将 Lumerical Python API 路径加入 `sys.path`。
+
+如需迁移项目或调整 Lumerical 安装位置，优先修改环境变量 `SIM_PROJECT_ROOT`、`LUMERICAL_API_PATH`、`SIM_MATERIAL_DB`，或调整 `sim_config.py`，不要在各个脚本中分散修改绝对路径。
+
 ## 1. `_1/_2` 的简单圆弧逻辑
 
 `generate_pwb_path_1` 和 `generate_pwb_path_2` 使用固定 90 度圆弧：

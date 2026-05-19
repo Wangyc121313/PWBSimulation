@@ -4,7 +4,12 @@ run_single.py — 单次完整仿真
 """
 
 import sys
-sys.path.append("D:\\Program Files\\Lumerical\\v241\\api\\python\\")
+from pathlib import Path
+
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from sim_config import PD_DIR, add_lumerical_api_path
+
+add_lumerical_api_path()
 import lumapi
 
 from pwb_core import (
@@ -14,14 +19,15 @@ from pwb_core import (
     visualize_and_save_results_1,
 )
 
-SAVE_PATH = "D:/simulation/Simulation Project/simulation/PD-PWB-SMF/test/test.fsp"
+SAVE_PATH = PD_DIR / "test" / "test.fsp"
 
 params = PWBParameters()
 fdtd = lumapi.FDTD()
 
 generate_pwb_structure_1(fdtd, params)
 setup_fdtd_simulation_1(fdtd, params)
-fdtd.save(SAVE_PATH)
+SAVE_PATH.parent.mkdir(parents=True, exist_ok=True)
+fdtd.save(str(SAVE_PATH))
 
 fdtd.run()
 

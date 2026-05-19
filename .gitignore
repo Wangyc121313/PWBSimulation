@@ -2,9 +2,11 @@
 LD-PWB-SMF/results/
 LD-PWB-SMF/*fsp
 LD-PWB-SMF/*lsf
+LD-PWB-SMF/__pycache__/
 LNOI-PWB-SMF/results/
 LNOI-PWB-SMF/*fsp
 LNOI-PWB-SMF/*lsf
+LNOI-PWB-SMF/__pycache__/
 PD-PWB-SMF/results/
 PD-PWB-SMF/*fsp
 PD-PWB-SMF/*lsf
