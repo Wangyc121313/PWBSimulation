@@ -51,10 +51,6 @@ PWBSimulation/
 ├── LNOI-PWB-SMF/            # LNOI → PWB → SMF 场景
 ├── SOA-PWB-SOA/             # SOA → PWB → SOA 场景
 ├── notebooks/               # Jupyter notebooks（数据分析）
-├── docs/
-│   └── superpowers/
-│       ├── specs/           # 设计文档
-│       └── plans/           # 实现计划
 ├── AGENTS.md                # AI Agent 使用说明
 ├── CLAUDE.md                # Claude Code 使用说明
 └── README.md                # 本文件
@@ -62,13 +58,11 @@ PWBSimulation/
 
 ## 开发约定
 
-- **单位**：几何参数统一用 SI（米），以 `X * 1e-6` 表示微米
+- **单位**：几何参数统一用米，以 `X * 1e-6` 表示微米
 - **路径**：所有路径从 `config/sim_config.py` 导入，不硬编码
 - **FDTD 代价**：优先做代码检查，未经明确要求不运行完整仿真或参数扫描
 - **结果输出**：放入对应场景的 `results/` 子目录
 
 ## 参考
 
-- 设计文档：`docs/superpowers/specs/`
-- 实现计划：`docs/superpowers/plans/`
 - 物理参数说明：各场景 `parameter.md`
