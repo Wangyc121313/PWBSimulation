@@ -55,8 +55,8 @@ class SOAPWBParams:
         # ---- PWB radius profile ----
         # First axis radius along the path:
         #   taper1_start (r_in) → taper1_end (r_pwb) → taper2_start → taper2_end (r_out)
-        self.r_in = 1.0e-6                 # start radius at SOA output facet [m]
-        self.r_pwb = 1.5e-6                # middle PWB section radius [m]
+        self.r_in = 1.25e-6                 # start radius at SOA output facet [m]
+        self.r_pwb = 1.1e-6                # middle PWB section radius [m]
         self.r_out = 1.0e-6                # end radius at external SOA input facet [m]
 
         # ---- Elliptical cross-section support ----
@@ -64,8 +64,8 @@ class SOAPWBParams:
         # and provide second-axis radius values.  Otherwise the cross-section
         # is circular (radius_2 defaults to the first-axis value).
         self.use_ellipsoid = True
-        self.r_in_2 = 2.0e-6               # second-axis radius at taper1 start [m]
-        self.r_pwb_2 = 1.5e-6              # second-axis radius in PWB middle [m]
+        self.r_in_2 =3.0e-6               # second-axis radius at taper1 start [m]
+        self.r_pwb_2 = 1.1e-6              # second-axis radius in PWB middle [m]
         self.r_out_2 = 2.0e-6              # second-axis radius at taper2 end [m]
 
         # ---- Path discretisation ----
@@ -169,12 +169,14 @@ def _add_path_segments(
     """
     path_length = len(path)
     span = end_idx - start_idx
+    if span <= 0:
+        return
     segment_length = max(1, span // count)
 
     for i in range(count):
         idx0 = start_idx + i * segment_length
-        idx1 = min(start_idx + (i + 1) * segment_length, end_idx - 1)
-        if idx0 >= idx1:
+        idx1 = min(start_idx + (i + 1) * segment_length, end_idx)
+        if idx0 >= idx1 or idx1 >= path_length:
             continue
 
         start_pos = path[idx0]
@@ -239,14 +241,23 @@ def create_pwb_structure_in_fdtd(fdtd, params):
     idx_taper1_end = max(1, int(frac1 * cp))
     idx_taper2_start = min(cp - 1, int(frac2 * cp))
 
+    # Each section uses count = span so every path step gets a segment.
+    # end_idx for the last section is cp-1 (last valid path index);
+    # for other sections it is the neighbour's start index (inclusive boundary).
+
     # Taper-1: radius expansion  (r_in → r_pwb)
-    _add_path_segments(fdtd, path, params, 0, idx_taper1_end, 80, "PWB_taper1")
+    _add_path_segments(fdtd, path, params,
+                       0, idx_taper1_end, idx_taper1_end, "PWB_taper1")
 
     # PWB straight: constant radius (r_pwb)
-    _add_path_segments(fdtd, path, params, idx_taper1_end, idx_taper2_start, 120, "PWB_straight")
+    _add_path_segments(fdtd, path, params,
+                       idx_taper1_end, idx_taper2_start,
+                       idx_taper2_start - idx_taper1_end, "PWB_straight")
 
     # Taper-2: radius compression (r_pwb → r_out)
-    _add_path_segments(fdtd, path, params, idx_taper2_start, cp, 80, "PWB_taper2")
+    _add_path_segments(fdtd, path, params,
+                       idx_taper2_start, cp - 1,
+                       cp - 1 - idx_taper2_start, "PWB_taper2")
 
     return path
 
@@ -266,7 +277,7 @@ def setup_fdtd_simulation(fdtd, params, path):
     # ---- Lateral margin ----
     max_radius = max(params.r_pwb, params.r_in, params.r_out,
                      params.r_in_2, params.r_pwb_2, params.r_out_2)
-    margin = max_radius * 3
+    margin = max_radius  + 2e-6  # extra margin for PML and field decay
 
     # FDTD region: include a short SOA waveguide lead-in (from .fsp) before
     # the PWB taper starts at x=0, so the mode source can be placed inside
@@ -276,8 +287,8 @@ def setup_fdtd_simulation(fdtd, params, path):
     x_max = params.total_length + params.taper2_length * 0.3
 
     fdtd.setresource("FDTD", "GPU", True)
-    fdtd.set("express mode", True)
     fdtd.addfdtd()
+    fdtd.set("express mode", True)
     fdtd.set("dimension", "3D")
     fdtd.set("x min", x_min)
     fdtd.set("x max", x_max)
@@ -318,10 +329,10 @@ def setup_fdtd_simulation(fdtd, params, path):
     #   pwb_in — at end of taper-1 (start of PWB straight section)
     #   pwb_out — at end of PWB straight section (start of taper-2)
     #   output — at end of taper-2 (external SOA input facet)
-    mon_input = 0.0
+    mon_input = 5e-6  # just inside SOA output facet
     mon_pwb_in = params.taper1_length
     mon_pwb_out = params.total_length - params.taper2_length
-    mon_output = params.total_length
+    mon_output = params.total_length + 5e-6  # just inside external SOA input facet
 
     monitor_positions = [
         ("input_monitor", mon_input),
@@ -342,7 +353,7 @@ def setup_fdtd_simulation(fdtd, params, path):
     # ---- Mode expansion at several positions to track fundamental-mode
     #      transmission through each section ----
     expansion_monitors = [
-        ("mode_exp_pwb_in", mon_pwb_in),    # after taper-1
+        ("mode_exp_pwb_in", mon_input),    # after taper-1
         ("mode_exp_output", mon_output),    # after taper-2
     ]
     for name, mx in expansion_monitors:

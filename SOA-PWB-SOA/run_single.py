@@ -6,6 +6,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 from sim_config import SOA_DIR, add_lumerical_api_path
 
+# Ensure local pwb_core.py is found before pwb_core.py in other directories
+# (sim_config inserts PD-PWB-SMF at sys.path[0], so we must insert after it)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
 add_lumerical_api_path()
 import lumapi
 
